@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const API_BASE = "https://omnify-backend-495525526179.asia-south1.run.app/api/other-blogs/";
+const BASE_URL = "https://omnify-backend-495525526179.asia-south1.run.app";
 
 export default function Dashboard() {
   const [blogs, setBlogs] = useState([]);
@@ -10,6 +11,7 @@ export default function Dashboard() {
   const [prevUrl, setPrevUrl] = useState(null);
   const [count, setCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const getPageNumber = (url) => {
     if (!url) return null;
@@ -21,10 +23,18 @@ export default function Dashboard() {
     }
   };
 
+  const getFullUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith("http")) return url; // already absolute
+    return BASE_URL + url;
+  };
+
   const fetchBlogs = async (url = API_BASE) => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("access");
-      const res = await axios.get(url, {
+      const fullUrl = getFullUrl(url);
+      const res = await axios.get(fullUrl, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
@@ -34,14 +44,10 @@ export default function Dashboard() {
         setPrevUrl(res.data.previous);
         setCount(res.data.count || 0);
 
-        if (res.data.previous) {
-          const prevPage = getPageNumber(res.data.previous);
-          setCurrentPage(prevPage + 1);
-        } else {
-          setCurrentPage(1);
-        }
-      } else if (Array.isArray(res.data)) {
+        const currentPageFromUrl = getPageNumber(url) || 1;
+        setCurrentPage(currentPageFromUrl);
 
+      } else if (Array.isArray(res.data)) {
         setBlogs(res.data);
         setNextUrl(null);
         setPrevUrl(null);
@@ -54,6 +60,8 @@ export default function Dashboard() {
         setCount(0);
         setCurrentPage(1);
       }
+
+      console.log("Response data:", res.data);
     } catch (error) {
       console.error("Failed to load blogs:", error);
       setBlogs([]);
@@ -61,7 +69,10 @@ export default function Dashboard() {
       setPrevUrl(null);
       setCount(0);
       setCurrentPage(1);
+
+      console.error("Fetch error:", error.response || error.message);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -74,9 +85,13 @@ export default function Dashboard() {
     <div className="max-w-4xl mx-auto mt-12 px-4 pb-16">
       <h2 className="text-3xl font-bold text-textPrimary mb-6">All Blogs</h2>
 
-      {blogs.length === 0 ? (
+      {loading && <p>Loading...</p>}
+
+      {!loading && blogs.length === 0 && (
         <p className="text-textSecondary text-md">No blogs available.</p>
-      ) : (
+      )}
+
+      {!loading && blogs.length > 0 && (
         <div className="grid gap-6">
           {blogs.map((blog) => (
             <Link key={blog.id} to={`/blogs/${blog.id}`}>

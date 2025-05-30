@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const API_BASE = "https://omnify-backend-495525526179.asia-south1.run.app/api/my-blogs/";
+const BASE_URL = "https://omnify-backend-495525526179.asia-south1.run.app";
 
 export default function MyBlogList() {
   const [blogs, setBlogs] = useState([]);
@@ -10,6 +11,7 @@ export default function MyBlogList() {
   const [prevUrl, setPrevUrl] = useState(null);
   const [count, setCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const getPageNumber = (url) => {
     if (!url) return null;
@@ -21,13 +23,19 @@ export default function MyBlogList() {
     }
   };
 
+  const getFullUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith("http")) return url;
+    return BASE_URL + url;
+  };
+
   const fetchBlogs = async (url = API_BASE) => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("access");
-      const res = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const fullUrl = getFullUrl(url);
+      const res = await axios.get(fullUrl, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (res.data.results) {
@@ -36,12 +44,9 @@ export default function MyBlogList() {
         setPrevUrl(res.data.previous);
         setCount(res.data.count || 0);
 
-        if (res.data.previous) {
-          const prevPage = getPageNumber(res.data.previous);
-          setCurrentPage(prevPage + 1);
-        } else {
-          setCurrentPage(1);
-        }
+        const currentPageFromUrl = getPageNumber(url) || 1;
+        setCurrentPage(currentPageFromUrl);
+
       } else if (Array.isArray(res.data)) {
         setBlogs(res.data);
         setNextUrl(null);
@@ -55,14 +60,15 @@ export default function MyBlogList() {
         setCount(0);
         setCurrentPage(1);
       }
-    } catch (err) {
-      console.error("Error fetching blogs:", err);
+    } catch (error) {
+      console.error("Failed to load blogs:", error);
       setBlogs([]);
       setNextUrl(null);
       setPrevUrl(null);
       setCount(0);
       setCurrentPage(1);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -78,11 +84,15 @@ export default function MyBlogList() {
           My Blogs
         </h2>
 
-        {blogs.length === 0 ? (
+        {loading && <p className="text-center">Loading...</p>}
+
+        {!loading && blogs.length === 0 && (
           <p className="text-center text-gray-500">
             You haven't written any blogs yet.
           </p>
-        ) : (
+        )}
+
+        {!loading && blogs.length > 0 && (
           <div className="space-y-4">
             {blogs.map((blog) => (
               <Link key={blog.id} to={`/blogs/${blog.id}`}>
