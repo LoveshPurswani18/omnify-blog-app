@@ -2,12 +2,12 @@
 
 A full-stack blogging platform built using **Django REST Framework** and **React**, deployed on **Firebase Hosting** and **Google Cloud Run**.
 
-## 🌐 Live URL
+## Live URL
 
 Frontend: [https://your-firebase-site.web.app](https://your-firebase-site.web.app)  
 Backend: [https://omnify-backend-495525526179.asia-south1.run.app](https://omnify-backend-495525526179.asia-south1.run.app)
 
-## 📦 Tech Stack  
+## Tech Stack  
 
 - **Frontend**: React + Tailwind CSS
 - **Backend**: Django + Django REST Framework + SimpleWT
@@ -17,7 +17,7 @@ Backend: [https://omnify-backend-495525526179.asia-south1.run.app](https://omnif
   - Backend: Google Cloud Run
   - Frontend: Firebase Hosting
 
-## 🚀 Features
+## Features
 
 - User Authentication (Signup/Login/Logout)
 - JWT-based session management
@@ -27,7 +27,7 @@ Backend: [https://omnify-backend-495525526179.asia-south1.run.app](https://omnif
 - Protected routes
 - Clean responsive UI
 
-## 🛠 Setup Instructions
+## Setup Instructions
 
 ### Backend (Django)  
 
